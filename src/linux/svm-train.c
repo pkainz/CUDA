@@ -25,7 +25,7 @@ void exit_with_help()
 	"	2 -- radial basis function: exp(-gamma*|u-v|^2)\n"
 	"	3 -- sigmoid: tanh(gamma*u'*v + coef0)\n"
 	"	4 -- precomputed kernel (kernel values in training_set_file)\n"
-	"-d degree : set degree in kernel function (default 3)\n"
+    "-d degree : set degree in kernel function (default main3)\n"
 	"-g gamma : set gamma in kernel function (default 1/num_features)\n"
 	"-r coef0 : set coef0 in kernel function (default 0)\n"
 	"-c cost : set the parameter C of C-SVC, epsilon-SVR, and nu-SVR (default 1)\n"
@@ -64,6 +64,7 @@ static int max_line_len;
 
 #include "kernel_matrix_calculation.c"
 #include "cross_validation_with_matrix_precomputation.c"
+#include "train_with_matrix_precomputation.c"
 
 static char* readline(FILE *input)
 {
@@ -90,30 +91,40 @@ int main(int argc, char **argv)
 	char model_file_name[1024];
 	const char *error_msg;
 
+    printf("Launching program...\n");
+
 	parse_command_line(argc, argv, input_file_name, model_file_name);
-	read_problem(input_file_name);
+    printf("Checking parameters and loading data...\n");
+    read_problem(input_file_name);
 	error_msg = svm_check_parameter(&prob,&param);
 	if(error_msg)
 	{
 		fprintf(stderr,"ERROR: %s\n",error_msg);
 		exit(1);
-	}
+    } else
+    {
+        printf("Data loaded.\n");
+    }
 
 	if(cross_validation)
 	{
+        printf("Running cross validation with kernel matrix precomputed...\n");
 		do_cross_validation_with_KM_precalculated(  );
 
 //	do_cross_validation();
 	}
 	else
 	{
-		model = svm_train(&prob,&param);
-		if(svm_save_model(model_file_name,model))
-		{
-			fprintf(stderr, "can't save model to file %s\n", model_file_name);
-			exit(1);
-		}
-		svm_free_and_destroy_model(&model);
+        printf("Running training with kernel matrix precomputed...\n");
+        //model = svm_train(&prob,&param);
+        //model =
+                train_with_KM_precalculated(model_file_name);
+//        if(svm_save_model(model_file_name,model))
+//		{
+//			fprintf(stderr, "can't save model to file %s\n", model_file_name);
+//			exit(1);
+//		}
+//		svm_free_and_destroy_model(&model);
 	}
 	svm_destroy_param(&param);
 	free(prob.y);
@@ -271,7 +282,7 @@ void parse_command_line(int argc, char **argv, char *input_file_name, char *mode
 
 	strcpy(input_file_name, argv[i]);
 
-	if(i<argc-1)
+    if(i<argc-1)
 		strcpy(model_file_name,argv[i+1]);
 	else
 	{
@@ -282,6 +293,9 @@ void parse_command_line(int argc, char **argv, char *input_file_name, char *mode
 			++p;
 		sprintf(model_file_name,"%s.model",p);
 	}
+
+    printf("Input file name: %s\n",input_file_name);
+    printf("Model file name: %s\n",model_file_name);
 }
 
 // read in a problem (in svmlight format)

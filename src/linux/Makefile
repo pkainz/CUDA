@@ -40,7 +40,7 @@ CUDA_PATH ?= "/usr/local/cuda"
 
 # internal flags
 NVCCFLAGS   := -m${OS_SIZE} -maxrregcount=16
-CCFLAGS     :=
+CCFLAGS     := -DDEBUG -g3
 NVCCLDFLAGS :=
 LDFLAGS     :=
 
@@ -100,9 +100,9 @@ ALL_LDFLAGS += $(EXTRA_NVCCLDFLAGS)
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -I/usr/local/cuda/include
-INCLUDES  := -I/usr/local/cuda/samples/common/inc
-LIBRARIES := -L/usr/local/cuda/lib64
+INCLUDES  := -I$(CUDA_PATH)/include
+INCLUDES  := -I$(CUDA_PATH)/samples/common/inc
+LIBRARIES := -L$(CUDA_PATH)/lib64
 
 ################################################################################
 
@@ -112,11 +112,12 @@ LIBRARIES += -lcublas -lcudart
 
 # CUDA code generation flags
 ifneq ($(OS_ARCH),armv7l)
-GENCODE_SM10    := -gencode arch=compute_10,code=sm_10
+GENCODE_SM10    := -gencode arch=compute_10,code=\"sm_10,compute_10\"
 endif
-GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
-GENCODE_SM30    := -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=\"sm_35,compute_35\"
-GENCODE_FLAGS   := $(GENCODE_SM10) $(GENCODE_SM20) $(GENCODE_SM30)
+GENCODE_SM20    := -gencode arch=compute_20,code=\"sm_20,compute_20\"
+GENCODE_SM30    := -gencode arch=compute_30,code=\"sm_30,compute_30\" 
+GENCODE_SM35	:= -gencode arch=compute_35,code=\"sm_35,compute_35\"
+GENCODE_FLAGS   := $(GENCODE_SM10) $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
 
 ################################################################################
 

@@ -1341,6 +1341,7 @@ public:
 		int start, j;
 		if((start = cache->get_data(i,&data,len)) < len)
 		{
+//#pragma omp parallel for private(j) schedule(guided)
 			for(j=start;j<len;j++)
 				data[j] = (Qfloat)(y[i]*y[j]*(this->*kernel_function)(i,j));
 		}
@@ -1456,6 +1457,7 @@ public:
 		int j, real_i = index[i];
 		if(cache->get_data(real_i,&data,l) < l)
 		{
+//#pragma omp parallel for private(i) schedule(guided)
 			for(j=0;j<l;j++)
 				data[j] = (Qfloat)(this->*kernel_function)(real_i,j);
 		}
@@ -2115,6 +2117,13 @@ static void svm_group_classes(const svm_problem *prob, int *nr_class_ret, int **
 		}
 	}
 
+    printf("Number of classes: %i\n", nr_class);
+    printf("Distribution:\n");
+    for (i=0;i<nr_class;i++)
+    {
+        printf("%i :: %i\n", label[i], count[i]);
+    }
+
 	//
 	// Labels are ordered by their first occurrence in the training set. 
 	// However, for two-class sets with -1/+1 labels and -1 appears first, 
@@ -2494,6 +2503,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 
 	for(i=0;i<nr_fold;i++)
 	{
+        printf("Running fold %i of %i...\n",i+1,nr_fold);
 		int begin = fold_start[i];
 		int end = fold_start[i+1];
 		int j,k;
@@ -2599,7 +2609,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 	{
 		double *sv_coef = model->sv_coef[0];
 		double sum = 0;
-		
+//#pragma omp parallel for private(i) reduction(+:sum) schedule(guided)
 		for(i=0;i<model->l;i++)
 #ifdef _DENSE_REP
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV+i,model->param);
@@ -2621,6 +2631,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		int l = model->l;
 		
 		double *kvalue = Malloc(double,l);
+//#pragma omp parallel for private(i) schedule(guided)
 		for(i=0;i<l;i++)
 #ifdef _DENSE_REP
 			kvalue[i] = Kernel::k_function(x,model->SV+i,model->param);

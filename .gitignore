@@ -1,0 +1,13 @@
+.project
+.pydevproject
+*.model
+*.scale
+*.o
+
+gpu-libsvm.config
+gpu-libsvm.files
+gpu-libsvm.includes
+gpu-libsvm.creator*
+*~
+
+src/linux/svm-train-gpu

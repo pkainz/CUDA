@@ -284,6 +284,7 @@ class Worker(Thread):
 			cmdline += ' -g {0} '.format(g)
 		cmdline += ' -v {0} {1} {2} '.format\
 			(options.fold,options.pass_through_string,options.dataset_pathname)
+		print cmdline
 		return cmdline
 		
 class LocalWorker(Worker):
@@ -492,6 +493,7 @@ svm_options : additional options for svm-train""")
 		exit_with_help()
 	dataset_pathname = sys.argv[-1]
 	options = sys.argv[1:-1]
+	print("Running grid.py")
 	try:
 		find_parameters(dataset_pathname, options)
 	except (IOError,ValueError) as e:
